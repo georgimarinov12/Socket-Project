@@ -4,11 +4,13 @@
 #include <unistd.h> 
 #include <string.h>
    
-int main(int argc, char const *argv[]) 
-{ 
-    int sock = 0; 
-    struct sockaddr_in serv_addr;  
-    
+void commands();
+   
+int sock = 0;
+struct sockaddr_in serv_addr;
+   
+int main(int argc, char const *argv[]){ 
+        
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) 
     { 
         printf("\n Socket creation error \n"); 
@@ -31,5 +33,43 @@ int main(int argc, char const *argv[])
         return -1; 
     } 
     
+    commands();
+    
     return 0; 
 } 
+
+void commands(){
+	char option[2];
+	while(1){
+		printf("Command list:\nu - pick username\nm - send message\nq - quit\n");
+		scanf("%s", option);
+		if(option[0] == 'u'){
+			send(sock, option, strlen(option)+1, 0);
+			
+			char newsurname[50];
+	   		
+		   	printf("Username (Character limit 50):\n");
+		   	scanf("%s", newsurname);
+			
+			send(sock, newsurname, strlen(newsurname)+1, 0);
+		
+		} else if(option[0] == 'm'){
+			send(sock, option, strlen(option)+1, 0);
+		
+			char message[500];
+			char recipient[50];
+			
+			printf("Write the username of the recipient, new line, then write your message:\n");
+			
+			scanf("%s", recipient);
+			scanf("%s", message);
+			
+			send(sock, recipient, strlen(recipient)+1, 0);
+			send(sock, message, strlen(message)+1, 0);
+		
+		} else if(option[0] == 'q'){
+			break;
+		
+		} else printf("Invalid command!\n");
+	}
+}

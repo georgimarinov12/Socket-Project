@@ -26,7 +26,8 @@ int main(int argc, char const *argv[]){
 	int opt; 
     struct sockaddr_in server_address;
     struct sockaddr_in client_address;
-    pthread_t tid; 
+    pthread_t *tid = malloc(sizeof(pthread_t) * 100);
+    int i = 0; 
     
 	pthread_mutex_init(&mutex, NULL); 
     
@@ -54,7 +55,7 @@ int main(int argc, char const *argv[]){
         exit(EXIT_FAILURE); 
     } 
     
-    printf("Server start");
+    printf("Server start\n");
     
 	while(1){
 		socklen_t address_length = sizeof(client_address);
@@ -66,10 +67,11 @@ int main(int argc, char const *argv[]){
 		client_t *client = (client_t*)malloc(sizeof(client_t));
 		client->address = client_address;
 		client->fd = client_fd;
-		strcpy(client->username, "");
+		strcpy(client->username, "Anonymous");
 		
 		add_client(client);
-		pthread_create(&tid, NULL, &commands, (void*)client);
+		pthread_create(&tid[i], NULL, &commands, (void*)client);
+    	++i;
     }
     
     pthread_mutex_destroy(&mutex);
@@ -89,50 +91,37 @@ void add_client(client_t *client){
 
 void *commands(void *arg){
 	client_t *client = (client_t*)arg;
-	
-	char banner[200] = "Command list:\nu - pick username\nm - send message\n"; 
-	write(client->fd, banner, strlen(banner));
 	 
-	char *option[2];
-	read(client->fd, option, 1);
-	if(strcmp(option[0], "u") == 0){
-    	char newsurname[50];
-   		
-   		for(int i = 1; i == 1;){
-	   		write(client->fd, "Username (Character limit 50):\n", 31);
-	   		read(client->fd, newsurname, 50);
+	while(1){
+		char option[2];
+		read(client->fd, option, 2);
+		
+		if(option[0] == 'u'){
+			char newsurname[50];
+	   		
+		   	read(client->fd, newsurname, 50);
+			strcpy(client->username, newsurname);
+			printf("New user: %s\n", client->username);
+
+		} else if(option[0] == 'm'){
+			char message[500];
+			char recipient[50];
 			
-			for(int i = 0; i < 100; ++i){
-    			if(strcmp(clients[i]->username, newsurname) == 0){
-    				write(client->fd, "Username taken\n", 15);
-    				break;
-    			}
-    			else{
-    				strcpy(client->username, newsurname);
-    				i = 0;
-    			}
-    		}
+			read(client->fd, recipient, 50);
+			printf("%s\n", recipient);
+			read(client->fd, message, 500);
+	   		printf("%s\n", message);
 			
-    	}
-    } else if(strcmp(option[0], "m") == 0){
-    	char message[500];
-    	char recipient[50];
-    	
-    	write(client->fd, "Write the username of the recipient, new line, then write your message:\n", 73);
-    	
-    	read(client->fd, recipient, 50);
-    	read(client->fd, message, 500);
-    	
-    	pthread_mutex_lock(&mutex);
-    	for(int i = 0; i < 100; ++i){
-    		if(strcmp(clients[i]->username, recipient) == 0){
-    			write(clients[i]->fd, message, strlen(message));
-    			break;
-    		}
-    	}
-    	pthread_mutex_unlock(&mutex);
+/*			pthread_mutex_lock(&mutex);*/
+/*			for(int i = 0; i < 100; ++i){*/
+/*				if(strcmp(clients[i]->username, recipient) == 0){*/
+/*					send(clients[i]->fd, message, strlen(message), 0);*/
+/*					break;*/
+/*				}*/
+/*			}*/
+/*			pthread_mutex_unlock(&mutex);*/
+		} else if(option[0] == 'q') break;
+	}
     
-    }else write(client->fd, "Invalid command!\n", 17);
-    
-    return NULL;
+    pthread_exit(NULL);
 }
