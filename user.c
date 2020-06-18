@@ -1,15 +1,19 @@
 #include <stdio.h> 
 #include <sys/socket.h> 
 #include <arpa/inet.h> 
-#include <unistd.h> 
+#include <unistd.h>
+#include <pthread.h> 
 #include <string.h>
    
 void commands();
+void *receive();
    
 int sock = 0;
 struct sockaddr_in serv_addr;
    
 int main(int argc, char const *argv[]){ 
+    pthread_t receiving_thread;    
+    
         
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) 
     { 
@@ -33,10 +37,28 @@ int main(int argc, char const *argv[]){
         return -1; 
     } 
     
+    pthread_create(&receiving_thread, NULL, receive, NULL);
     commands();
     
     return 0; 
 } 
+
+void *receive(){
+	char message[500];
+	char username[50];
+	
+	//while(1){
+		read(sock, username, 50);
+		printf("%s:\n", username);
+		
+		sleep(1);
+		read(sock, message, 500);
+		printf("%s\n", message);
+		
+	//}
+	
+	pthread_exit(NULL);
+}
 
 void commands(){
 	char option[2];
@@ -65,6 +87,7 @@ void commands(){
 			scanf("%s", message);
 			
 			send(sock, recipient, strlen(recipient)+1, 0);
+			sleep(1);
 			send(sock, message, strlen(message)+1, 0);
 		
 		} else if(option[0] == 'q'){
@@ -72,4 +95,6 @@ void commands(){
 		
 		} else printf("Invalid command!\n");
 	}
+	
+	pthread_exit(NULL);
 }

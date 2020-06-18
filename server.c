@@ -104,22 +104,30 @@ void *commands(void *arg){
 			printf("New user: %s\n", client->username);
 
 		} else if(option[0] == 'm'){
+			char cli_username[50];
+			strcpy(cli_username, client->username);
+			printf("Test name::%s::%ld\n", client->username, strlen(client->username));
+			printf("Test name:::%s::%ld\n", cli_username, strlen(cli_username));
+			
 			char message[500];
 			char recipient[50];
 			
 			read(client->fd, recipient, 50);
 			printf("%s\n", recipient);
+			sleep(1);
 			read(client->fd, message, 500);
 	   		printf("%s\n", message);
 			
-/*			pthread_mutex_lock(&mutex);*/
-/*			for(int i = 0; i < 100; ++i){*/
-/*				if(strcmp(clients[i]->username, recipient) == 0){*/
-/*					send(clients[i]->fd, message, strlen(message), 0);*/
-/*					break;*/
-/*				}*/
-/*			}*/
-/*			pthread_mutex_unlock(&mutex);*/
+			pthread_mutex_lock(&mutex);
+			for(int i = 0; i < 100; ++i){
+				if(strcmp(clients[i]->username, recipient) == 0){
+					send(clients[i]->fd, cli_username, strlen(cli_username), 0);
+					sleep(1);
+					send(clients[i]->fd, message, strlen(message), 0);
+					break;
+				}
+			}
+			pthread_mutex_unlock(&mutex);
 		} else if(option[0] == 'q') break;
 	}
     
