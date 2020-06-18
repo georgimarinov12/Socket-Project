@@ -44,20 +44,31 @@ int main(int argc, char const *argv[]){
 } 
 
 void *receive(){
-	char message[500];
-	char username[50];
+	while(1){
+		char message[500];
+		char username[50];
+		char warning[30];
+		char warning_num[15];
 	
-	//while(1){
-		read(sock, username, 50);
-		printf("%s:\n", username);
-		
+		read(sock, warning_num, 2);
 		sleep(1);
-		read(sock, message, 500);
-		printf("%s\n", message);
 		
-	//}
+		if(warning_num[0] == '0'){
+			read(sock, warning, 30);
+			printf("%s\n", warning);
+		} else{
+			read(sock, username, 50);
+			printf("%s:\n", username);
+		
+			sleep(1);
+			read(sock, message, 500);
+			printf("%s\n", message);	
+		}
+		
+	}
 	
 	pthread_exit(NULL);
+	return NULL;
 }
 
 void commands(){
@@ -97,4 +108,5 @@ void commands(){
 	}
 	
 	pthread_exit(NULL);
+	return;
 }
