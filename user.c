@@ -65,6 +65,9 @@ void *receive(){
 			printf("%s\n", message);	
 		}
 		
+		memset(message, 0, strlen(message));
+		memset(username, 0, strlen(message));
+		
 	}
 	
 	pthread_exit(NULL);
